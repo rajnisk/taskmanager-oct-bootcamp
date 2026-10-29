@@ -1,85 +1,55 @@
-<script setup>
-import { RouterLink, RouterView } from 'vue-router'
-import HelloWorld from './components/HelloWorld.vue'
-</script>
 
 <template>
-  <header>
-    <img alt="Vue logo" class="logo" src="@/assets/logo.svg" width="125" height="125" />
+  <router-view />
 
-    <div class="wrapper">
-      <HelloWorld msg="You did it!" />
+  <!-- Global Toast Container -->
+  <div
+    class="toast-container position-fixed top-0 end-0 p-3"
+    style="z-index: 1100"
+  >
+    <div
+      v-for="item in toastState.messages"
+      :key="item.id"
+      class="toast show border-0 mb-2"
+      :class="'text-bg-' + item.type"
+      role="alert"
+      aria-live="polite"
+      aria-atomic="true"
+    >
+      <div class="d-flex">
+        <div class="toast-body">
+          <strong>
+            {{ titles[item.type] }}:
+          </strong>
+          {{ item.message }}
+        </div>
 
-      <nav>
-        <RouterLink to="/">Home</RouterLink>
-        <RouterLink to="/about">About</RouterLink>
-      </nav>
+        <button
+          type="button"
+          class="btn-close me-2 m-auto"
+          :class="{ 'btn-close-white': item.type !== 'warning' && item.type !== 'info' }"
+          aria-label="Close"
+          @click="$toast.remove(item.id)"
+        ></button>
+      </div>
     </div>
-  </header>
-
-  <RouterView />
+  </div>
 </template>
 
-<style scoped>
-header {
-  line-height: 1.5;
-  max-height: 100vh;
-}
+<script>
+import { toastState } from './toast'
 
-.logo {
-  display: block;
-  margin: 0 auto 2rem;
-}
-
-nav {
-  width: 100%;
-  font-size: 12px;
-  text-align: center;
-  margin-top: 2rem;
-}
-
-nav a.router-link-exact-active {
-  color: var(--color-text);
-}
-
-nav a.router-link-exact-active:hover {
-  background-color: transparent;
-}
-
-nav a {
-  display: inline-block;
-  padding: 0 1rem;
-  border-left: 1px solid var(--color-border);
-}
-
-nav a:first-of-type {
-  border: 0;
-}
-
-@media (min-width: 1024px) {
-  header {
-    display: flex;
-    place-items: center;
-    padding-right: calc(var(--section-gap) / 2);
-  }
-
-  .logo {
-    margin: 0 2rem 0 0;
-  }
-
-  header .wrapper {
-    display: flex;
-    place-items: flex-start;
-    flex-wrap: wrap;
-  }
-
-  nav {
-    text-align: left;
-    margin-left: -1rem;
-    font-size: 1rem;
-
-    padding: 1rem 0;
-    margin-top: 1rem;
+export default {
+  data() {
+    return {
+      toastState,
+      titles: {
+        success: 'Success',
+        danger: 'Error',
+        warning: 'Warning',
+        info: 'Info'
+      }
+    }
   }
 }
-</style>
+</script>

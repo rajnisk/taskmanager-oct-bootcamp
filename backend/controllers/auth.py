@@ -1,9 +1,41 @@
-from flask_restful import Resource
+from flask_restful import Resource, request
+from werkzeug.security import generate_password_hash, check_password_hash
+from extensions import db
+from models import User
+from flask_jwt_extended import create_access_token
 
 class LoginResource(Resource):
     def post(self):
-        return {"message":"Login route"}
+        data = request.get_json()
+        email = data.get('email')
+        password = data.get('password')
+
+        user = User.query.filter_by(email=email).first()
+        if not user:
+            return {"error":"there is no such user with the provided email!"}
+        print(password)
+        if not check_password_hash(user.password_hash, password):
+            return {"error":"incorrect password!"}
+        token = create_access_token(identity=str(user.id))
+
+        return {"message":"Loggedin successfully!", "token":token}
 
 class RegisterResource(Resource):
     def post(self):
-        return {"message":"Resource route"}
+        data = request.get_json()
+        full_name = data.get('full_name')
+        email = data.get('email')
+        password = data.get('password')
+
+        if not full_name or not email or not password:
+            return {"error": "all fields are required!"}
+        user = User.query.filter_by(email=email).first()
+        if user:
+            return {"error": "User already exists!"}
+        password_hash = generate_password_hash(password)
+
+        new_user = User(full_name=full_name, email=email, password_hash=password_hash)
+        db.session.add(new_user)
+        db.session.commit()
+
+        return {"message":"User created successfully!"}

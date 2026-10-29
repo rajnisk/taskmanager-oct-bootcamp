@@ -4,10 +4,10 @@ from flask_sqlalchemy import SQLAlchemy
 from extensions import db, jwt, cache, mail
 from celery_app import init_celery
 from flask_cors import CORS
-from controllers import register_routes
 from models import User
 from werkzeug.security import generate_password_hash
 from celery import Celery
+from celery.schedules import crontab
 
 def create_admin():
     admin = User.query.filter_by(email='admin@local').first()
@@ -63,12 +63,29 @@ def create_app():
 
 
 
+    # ============================
+    # schedules
+    # ============================
+    celery.conf.timezone = 'Asia/Kolkata'
+    celery.conf.beat_schedule = {
+        # 'monthly-report': {
+        #     'task': 'tasks.monthly_report',
+        #     'schedule': crontab(day_of_month=26, hour=8, minute=29),
+        # },
+        # 'daily-reminder': {
+        #     'task': 'tasks.daily_reminder',
+        #     'schedule': crontab(hour=8, minute=29),
+        # },
+    }
+
+
     db.init_app(app)
     jwt.init_app(app)
     cache.init_app(app)
     mail.init_app(app)
     celery = init_celery(app)
-
+    
+    from controllers import register_routes
     register_routes(api)
 
     return app
