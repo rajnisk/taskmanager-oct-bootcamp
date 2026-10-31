@@ -33,7 +33,13 @@ export default {
       if (resp.status === 200){
         this.$toast.success('Login successful!')
         localStorage.setItem('token', resp.data.token)
-        this.$router.push('/')
+        localStorage.setItem('role', resp.data.role)
+        localStorage.setItem('full_name', resp.data.full_name)
+        if (resp.data.role === 'admin'){
+          this.$router.push('/admin')
+        } else {
+          this.$router.push('/')
+        }
       } else {
         this.$toast.error(resp.data.error)
       }

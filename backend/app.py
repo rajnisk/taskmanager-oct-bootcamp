@@ -6,8 +6,10 @@ from celery_app import init_celery
 from flask_cors import CORS
 from models import User
 from werkzeug.security import generate_password_hash
-from celery import Celery
 from celery.schedules import crontab
+
+celery = None
+
 
 def create_admin():
     admin = User.query.filter_by(email='admin@local').first()
@@ -57,25 +59,16 @@ def create_app():
     # ============================
     app.config['broker_url'] = 'redis://localhost:6379/0'
     app.config['result_backend'] = 'redis://localhost:6379/0'
-
-    celery = Celery(app.name, broker=app.config['broker_url'], backend=app.config['result_backend'])
-    celery.conf.broker_connection_retry_on_startup = True
-
-
-
-    # ============================
-    # schedules
-    # ============================
-    celery.conf.timezone = 'Asia/Kolkata'
-    celery.conf.beat_schedule = {
+    app.config['timezone'] = 'Asia/Kolkata'
+    app.config['beat_schedule'] = {
         # 'monthly-report': {
         #     'task': 'tasks.monthly_report',
         #     'schedule': crontab(day_of_month=26, hour=8, minute=29),
         # },
-        # 'daily-reminder': {
-        #     'task': 'tasks.daily_reminder',
-        #     'schedule': crontab(hour=8, minute=29),
-        # },
+        'daily-reminder': {
+            'task': 'tasks.daily_reminder',
+            'schedule': crontab(hour=8, minute=30),  # Every day at 8:30 AM
+        },
     }
 
 
@@ -83,7 +76,9 @@ def create_app():
     jwt.init_app(app)
     cache.init_app(app)
     mail.init_app(app)
+    global celery
     celery = init_celery(app)
+    import backend_tasks
     
     from controllers import register_routes
     register_routes(api)

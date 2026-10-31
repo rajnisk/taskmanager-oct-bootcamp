@@ -1,8 +1,10 @@
 from flask_restful import Resource, request
 from werkzeug.security import generate_password_hash, check_password_hash
-from extensions import db
+from extensions import db, jwt
 from models import User
-from flask_jwt_extended import create_access_token
+from flask_jwt_extended import create_access_token, jwt_required, get_jwt
+
+blocklist = set()
 
 class LoginResource(Resource):
     def post(self):
@@ -18,7 +20,7 @@ class LoginResource(Resource):
             return {"error":"incorrect password!"}
         token = create_access_token(identity=str(user.id))
 
-        return {"message":"Loggedin successfully!", "token":token}
+        return {"message":"Loggedin successfully!", "token":token, "role":user.role, "full_name":user.full_name}
 
 class RegisterResource(Resource):
     def post(self):
@@ -39,3 +41,15 @@ class RegisterResource(Resource):
         db.session.commit()
 
         return {"message":"User created successfully!"}
+
+
+
+# @jwt.token_in_blocklist_loader
+# def check_token(jwt_header, jwt_payload):
+#     return jwt_payload["jti"] in blocklist
+
+class Logout(Resource):
+    @jwt_required()
+    def post(self):
+        blocklist.add(get_jwt()["jti"])
+        return {"message": "Logged out successfully"}, 200

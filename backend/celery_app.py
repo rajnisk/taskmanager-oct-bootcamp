@@ -1,14 +1,10 @@
-
 from celery import Celery
-
-
-
 
 def init_celery(flask_app):
     celery_app = Celery(
         flask_app.import_name,
-        broker=flask_app.config['broker_url'],
-        backend=flask_app.config['result_backend']
+        broker=flask_app.config["broker_url"],
+        backend=flask_app.config["result_backend"],
     )
     celery_app.conf.update(flask_app.config)
 
