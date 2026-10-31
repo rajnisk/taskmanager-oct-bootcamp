@@ -11,6 +11,7 @@ from celery.schedules import crontab
 celery = None
 
 
+
 def create_admin():
     admin = User.query.filter_by(email='admin@local').first()
     if not admin:
