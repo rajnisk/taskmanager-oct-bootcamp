@@ -1,6 +1,7 @@
 from flask_restful import Resource, request
+from controllers.task import EmployeeResource
 from werkzeug.security import generate_password_hash, check_password_hash
-from extensions import db, jwt
+from extensions import db, jwt, cache
 from models import User
 from flask_jwt_extended import create_access_token, jwt_required, get_jwt
 
@@ -39,7 +40,7 @@ class RegisterResource(Resource):
         new_user = User(full_name=full_name, email=email, password_hash=password_hash)
         db.session.add(new_user)
         db.session.commit()
-
+        cache.delete_memoized(EmployeeResource.get)  # Clear the cache for the get method of EmployeeResource
         return {"message":"User created successfully!"}
 
 

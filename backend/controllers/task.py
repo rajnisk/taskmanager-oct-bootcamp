@@ -1,3 +1,5 @@
+from time import sleep
+
 from flask_restful import Resource, request
 from models import Task
 from extensions import db, cache
@@ -7,6 +9,7 @@ from datetime import datetime
 
 class TaskResource(Resource):
     @jwt_required()
+    @cache.cached(timeout=60, query_string=True)
     def get(self, task_id=None):
         user_id = int(get_jwt_identity())
         user = User.query.get(user_id)
@@ -46,6 +49,8 @@ class TaskResource(Resource):
         )
         db.session.add(task)
         db.session.commit()
+        cache.delete_memoized(self.get)  # Clear the cache for the get method
+        # cache.clear()  # Clear the entire cache to ensure consistency
         return {"message": "task created!"}, 201
 
     @jwt_required()
@@ -85,8 +90,10 @@ class TaskResource(Resource):
             task.status = status
             if status == "completed":
                 task.completed_date = datetime.now()
-
+        cache.delete_memoized(self.get)  # Clear the cache for the get method
+        # cache.clear()  # Clear the entire cache to ensure consistency
         db.session.commit()
+
         return {"message": "task updated!!"}
 
     @jwt_required()
@@ -98,14 +105,18 @@ class TaskResource(Resource):
         task = Task.query.get_or_404(task_id)
         db.session.delete(task)
         db.session.commit()
+        cache.delete_memoized(self.get)  # Clear the cache for the get method
+        # cache.clear()  # Clear the entire cache to ensure consistency 
         return {"message": "task deleted!!"}
 
 
 class EmployeeResource(Resource):
     @jwt_required()
+    @cache.cached(timeout=60, query_string=True)
     def get(self):
         user_id = int(get_jwt_identity())
         user = User.query.get(user_id)
+        sleep(10)  # Simulate a delay for demonstration purposes
         if user.role != "admin":
             return {"message": "You are not authorized to view employees."}, 403
 

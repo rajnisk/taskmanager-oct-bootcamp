@@ -67,7 +67,7 @@ def create_app():
         # },
         'daily-reminder': {
             'task': 'tasks.daily_reminder',
-            'schedule': crontab(hour=8, minute=30),  # Every day at 8:30 AM
+            'schedule': crontab(),  # Every day at 8:30 AM
         },
     }
 
